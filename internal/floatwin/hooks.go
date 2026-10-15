@@ -7,6 +7,6 @@ type Hooks struct {
 }
 
 const (
-	floatW = 420
-	floatH = 96
+	floatW = 280
+	floatH = 66
 )

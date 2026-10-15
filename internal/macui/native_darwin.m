@@ -117,9 +117,13 @@ enum {
 @end
 
 @interface PMAppDelegate : NSObject <NSApplicationDelegate>
+- (void)quitApp:(id)sender;
 @end
 
 @implementation PMAppDelegate
+- (void)quitApp:(id)sender {
+	goPMTray(PM_TRAY_EXIT);
+}
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
 	return NO;
 }
@@ -184,6 +188,36 @@ static PMWindowCtl *PMGet(int id) {
 	return gWindows[@(id)];
 }
 
+static void PMInstallMainMenu(void) {
+	NSMenu *main = [NSMenu new];
+	NSMenuItem *appItem = [[NSMenuItem alloc] initWithTitle:@"PhraseMate" action:NULL keyEquivalent:@""];
+	[main addItem:appItem];
+	NSMenu *appMenu = [[NSMenu alloc] initWithTitle:@"PhraseMate"];
+	appItem.submenu = appMenu;
+	[appMenu addItemWithTitle:@"隐藏 PhraseMate" action:@selector(hide:) keyEquivalent:@"h"];
+	[appMenu addItem:[NSMenuItem separatorItem]];
+	NSMenuItem *quit = [appMenu addItemWithTitle:@"退出 PhraseMate"
+						 action:@selector(quitApp:) keyEquivalent:@"q"];
+	quit.target = gAppDelegate;
+
+	NSMenuItem *editItem = [[NSMenuItem alloc] initWithTitle:@"编辑" action:NULL keyEquivalent:@""];
+	[main addItem:editItem];
+	NSMenu *edit = [[NSMenu alloc] initWithTitle:@"编辑"];
+	editItem.submenu = edit;
+	// Nil targets let AppKit route each action to the focused text responder,
+	// including the private editing views inside WKWebView.
+	[edit addItemWithTitle:@"撤销" action:NSSelectorFromString(@"undo:") keyEquivalent:@"z"];
+	NSMenuItem *redo = [edit addItemWithTitle:@"重做"
+						 action:NSSelectorFromString(@"redo:") keyEquivalent:@"z"];
+	redo.keyEquivalentModifierMask = NSEventModifierFlagCommand | NSEventModifierFlagShift;
+	[edit addItem:[NSMenuItem separatorItem]];
+	[edit addItemWithTitle:@"剪切" action:@selector(cut:) keyEquivalent:@"x"];
+	[edit addItemWithTitle:@"复制" action:@selector(copy:) keyEquivalent:@"c"];
+	[edit addItemWithTitle:@"粘贴" action:@selector(paste:) keyEquivalent:@"v"];
+	[edit addItemWithTitle:@"全选" action:@selector(selectAll:) keyEquivalent:@"a"];
+	NSApp.mainMenu = main;
+}
+
 void PMInit(void) {
 	PMOnMain(^{
 	  if (![NSThread isMainThread]) {
@@ -195,6 +229,7 @@ void PMInit(void) {
 	  }
 	  [NSApp setDelegate:gAppDelegate];
 	  [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+	  PMInstallMainMenu();
 	  if (!gWindows) {
 		  gWindows = [NSMutableDictionary new];
 	  }
