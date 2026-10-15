@@ -18,6 +18,7 @@ enum {
 };
 
 @interface PMKeyWindow : NSWindow
+@property(strong) NSEvent *dragMouseDown;
 @end
 
 @implementation PMKeyWindow
@@ -26,6 +27,30 @@ enum {
 }
 - (BOOL)canBecomeMainWindow {
 	return YES;
+}
+- (void)sendEvent:(NSEvent *)event {
+	BOOL contextClick = event.type == NSEventTypeRightMouseDown ||
+	    (event.type == NSEventTypeLeftMouseDown &&
+	     (event.modifierFlags & NSEventModifierFlagControl));
+	if (contextClick) {
+		self.dragMouseDown = nil;
+		NSMenu *menu = [NSMenu new];
+		NSMenuItem *hide = [[NSMenuItem alloc] initWithTitle:@"隐藏速记窗"
+							  action:@selector(orderOut:)
+						   keyEquivalent:@""];
+		hide.target = self;
+		[menu addItem:hide];
+		[NSMenu popUpContextMenu:menu withEvent:event forView:self.contentView];
+		return;
+	}
+	if (event.type == NSEventTypeLeftMouseDown) {
+		// WebKit delivers the JS bridge asynchronously. Keep the original
+		// mouse-down rather than relying on NSApp.currentEvent in the callback.
+		self.dragMouseDown = event;
+	} else if (event.type == NSEventTypeLeftMouseUp) {
+		self.dragMouseDown = nil;
+	}
+	[super sendEvent:event];
 }
 @end
 
@@ -233,7 +258,7 @@ int PMWindowCreate(const char *title, int width, int height, int flags) {
 		  window.opaque = NO;
 		  window.backgroundColor = [NSColor clearColor];
 		  window.hasShadow = YES;
-		  window.movableByWindowBackground = YES;
+		  window.movableByWindowBackground = NO;
 		  window.collectionBehavior = NSWindowCollectionBehaviorCanJoinAllSpaces |
 					     NSWindowCollectionBehaviorFullScreenAuxiliary |
 					     NSWindowCollectionBehaviorIgnoresCycle;
@@ -363,6 +388,22 @@ void PMWindowHide(int id) {
 		  return;
 	  }
 	  [ctl.window orderOut:nil];
+	});
+}
+
+void PMWindowStartDrag(int id) {
+	PMOnMain(^{
+	  PMWindowCtl *ctl = PMGet(id);
+	  if (!(ctl.flags & PM_WINDOW_FLOAT) ||
+	      ![ctl.window isKindOfClass:[PMKeyWindow class]]) {
+		  return;
+	  }
+	  PMKeyWindow *window = (PMKeyWindow *)ctl.window;
+	  NSEvent *event = window.dragMouseDown;
+	  window.dragMouseDown = nil;
+	  if (event && ([NSEvent pressedMouseButtons] & 1)) {
+		  [window performWindowDragWithEvent:event];
+	  }
 	});
 }
 

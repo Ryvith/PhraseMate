@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"phrasemate/internal/app"
-	"phrasemate/internal/brandicon"
 	"phrasemate/internal/floatwin"
 	"phrasemate/internal/macui"
 	"phrasemate/internal/shortcut"
@@ -23,9 +22,6 @@ import (
 func runDesktop(url string) {
 	runtime.LockOSThread()
 	macui.Init()
-	if img := brandicon.Render(256); img != nil {
-		macui.SetDockIcon(img.Pix, img.Bounds().Dx(), img.Bounds().Dy())
-	}
 
 	var (
 		mainView    atomic.Pointer[macWindow]

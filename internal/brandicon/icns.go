@@ -14,15 +14,16 @@ func WriteICNS(path string, sizes ...int) error {
 		return err
 	}
 	if len(sizes) == 0 {
-		sizes = []int{16, 32, 64, 128, 256, 512}
+		sizes = []int{16, 32, 64, 128, 256, 512, 1024}
 	}
 	wanted := map[int][]string{
-		16:  {"icp4"},
-		32:  {"icp5", "ic11"},
-		64:  {"icp6", "ic12"},
-		128: {"ic07"},
-		256: {"ic08", "ic13"},
-		512: {"ic09", "ic14"},
+		16:   {"icp4"},
+		32:   {"icp5", "ic11"},
+		64:   {"icp6", "ic12"},
+		128:  {"ic07"},
+		256:  {"ic08", "ic13"},
+		512:  {"ic09", "ic14"},
+		1024: {"ic10"},
 	}
 	var body bytes.Buffer
 	seen := map[int][]byte{}
@@ -56,12 +57,9 @@ func WriteICNS(path string, sizes ...int) error {
 	return os.WriteFile(path, out, 0o644)
 }
 
-// EnsureICNS writes AppIcon.icns into dir if missing.
+// EnsureICNS refreshes AppIcon.icns from the embedded artwork when packaging.
 func EnsureICNS(dir string) (string, error) {
 	path := filepath.Join(dir, "AppIcon.icns")
-	if st, err := os.Stat(path); err == nil && !st.IsDir() && st.Size() > 100 {
-		return path, nil
-	}
 	if err := WriteICNS(path); err != nil {
 		return "", err
 	}

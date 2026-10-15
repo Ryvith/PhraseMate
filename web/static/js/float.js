@@ -67,13 +67,13 @@
 
   // Drag via Go bridge (frameless window).
   const startDrag = (e) => {
-    if (e.target.closest("input, button")) return;
+    if (e.button !== 0 || e.ctrlKey || e.target.closest("input, button")) return;
     if (typeof window.startWindowDrag === "function") {
+      e.preventDefault();
       window.startWindowDrag();
     }
   };
   dragArea.addEventListener("mousedown", startDrag);
-  document.querySelector(".badge").addEventListener("mousedown", startDrag);
 
   term.focus();
 })();

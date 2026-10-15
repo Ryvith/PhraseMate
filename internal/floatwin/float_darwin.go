@@ -38,7 +38,7 @@ func Start(baseURL string, hooks Hooks) (*Host, error) {
 		}
 	})
 	w.Bind("startWindowDrag", func(_ []string) {
-		// Dragging is handled natively (movableByWindowBackground / CSS app-region).
+		w.StartDrag()
 	})
 	w.Navigate(baseURL + "/float.html")
 	w.PlaceBottomRight(floatW, floatH)
@@ -53,7 +53,6 @@ func (h *Host) Show() {
 	}
 	h.view.Show()
 	h.view.EnsureTopmost()
-	h.view.PlaceBottomRight(floatW, floatH)
 }
 
 // Close destroys the float window.

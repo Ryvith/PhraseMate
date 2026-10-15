@@ -143,6 +143,13 @@ func (w *Window) Hide() {
 	}
 }
 
+// StartDrag hands the original left mouse-down to the native window manager.
+func (w *Window) StartDrag() {
+	if w != nil {
+		C.PMWindowStartDrag(C.int(w.id))
+	}
+}
+
 func (w *Window) IsVisible() bool {
 	if w == nil {
 		return false

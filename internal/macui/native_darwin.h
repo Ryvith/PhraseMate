@@ -21,6 +21,7 @@ void PMWindowEval(int id, const char *js);
 void PMWindowSetBindScript(int id, const char *js);
 void PMWindowShow(int id);
 void PMWindowHide(int id);
+void PMWindowStartDrag(int id);
 bool PMWindowIsVisible(int id);
 void PMWindowPlaceBottomRight(int id, int width, int height);
 void PMWindowEnsureTopmost(int id);
